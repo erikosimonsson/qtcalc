@@ -1,3 +1,8 @@
 **.exe
 .vscode
 build
+debug
+release
+.qmake.stash
+Makefile
+Makefile.**

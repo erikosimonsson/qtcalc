@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = qttext
+TARGET = qtcalc
 
 QT = core gui
 
