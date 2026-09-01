@@ -1,8 +1,10 @@
-**.exe
-.vscode
-build
-debug
-release
-.qmake.stash
+.vscode/
+*.exe
+*.o
+*.obj
+/build
+/debug
+/release
 Makefile
-Makefile.**
+Makefile.*
+.qmake.stash
