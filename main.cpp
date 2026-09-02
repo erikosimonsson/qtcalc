@@ -4,6 +4,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QGridLayout>
+#include <QStringList>
 
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
@@ -19,19 +21,34 @@ int main(int argc, char **argv) {
 
     auto *keypadLayout = new QGridLayout();
 
-    keypadLayout->addWidget(new QPushButton("7"), 0, 0);
-    keypadLayout->addWidget(new QPushButton("8"), 0, 1);
-    keypadLayout->addWidget(new QPushButton("9"), 0, 2);
+    const QStringList buttonLabels = {
+        "7", "8", "9",
+        "4", "5", "6",
+        "1", "2", "3",
+        "0", "."
+    };
 
-    keypadLayout->addWidget(new QPushButton("4"), 1, 0);
-    keypadLayout->addWidget(new QPushButton("5"), 1, 1);
-    keypadLayout->addWidget(new QPushButton("6"), 1, 2);
+    for (int i = 0; i < buttonLabels.size(); ++i){
+        const QString buttonText = buttonLabels[i];
+        auto *button = new QPushButton(buttonText);
+        const int row = i / 3;
+        const int col = i % 3;
 
-    keypadLayout->addWidget(oneButton, 2, 0);
-    keypadLayout->addWidget(new QPushButton("2"), 2, 1);
-    keypadLayout->addWidget(new QPushButton("3"), 2, 2);
+        keypadLayout->addWidget(button, row, col);
 
-    keypadLayout->addWidget(new QPushButton("0"), 3, 1);
+        QObject::connect(button, &QPushButton::clicked, [display, buttonText]() {
+            const QString currentText = display->text();
+            if (buttonText == "." && currentText.contains('.')) {
+                return;
+            }
+
+            if (currentText == "0" && buttonText != ".") {
+                display->setText(buttonText);
+            } else {
+                display->setText(currentText + buttonText);
+            }
+        });
+    }
 
     auto *layout = new QVBoxLayout(&window);
     layout->addWidget(display);
