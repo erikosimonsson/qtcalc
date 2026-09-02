@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QGridLayout>
 #include <QStringList>
+#include <QSizePolicy>
 
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
@@ -13,9 +14,20 @@ int main(int argc, char **argv) {
     QWidget window;
     window.setWindowTitle("QtCalc");
 
+    window.setStyleSheet(R"(
+        QLineEdit {
+            font-size: 28px;
+            padding: 8px;
+        }
+        QPushButton {
+            font-size: 20px;
+        }
+    )");
+
     auto *display = new QLineEdit("0");
     display->setReadOnly(true);
     display->setAlignment(Qt::AlignRight);
+    display->setMinimumHeight(65);
 
     double firstOperand = 0.0;
     QString pendingOperator;
@@ -33,6 +45,10 @@ int main(int argc, char **argv) {
     for (int i = 0; i < buttonLabels.size(); ++i){
         const QString buttonText = buttonLabels[i];
         auto *button = new QPushButton(buttonText);
+        button->setSizePolicy(
+            QSizePolicy::Expanding,
+            QSizePolicy::Expanding
+        );
         const int row = i / 3;
         const int col = i % 3;
 
@@ -63,6 +79,10 @@ int main(int argc, char **argv) {
     for (int row = 0; row < operatorLabels.size(); ++row) {
         const QString operatorText = operatorLabels[row];
         auto *operatorButton = new QPushButton(operatorText);
+        operatorButton->setSizePolicy(
+            QSizePolicy::Expanding,
+            QSizePolicy::Expanding
+        );
 
         keypadLayout->addWidget(operatorButton, row, 3);
 
@@ -74,6 +94,10 @@ int main(int argc, char **argv) {
     }
 
     auto *clearButton = new QPushButton("C");
+    clearButton->setSizePolicy(
+        QSizePolicy::Expanding,
+        QSizePolicy::Expanding
+    );
 
     keypadLayout->addWidget(clearButton, 3, 2);
 
@@ -85,6 +109,11 @@ int main(int argc, char **argv) {
     });
 
     auto *equalsButton = new QPushButton("=");
+    equalsButton->setSizePolicy(
+        QSizePolicy::Expanding,
+        QSizePolicy::Expanding
+    );
+
     keypadLayout->addWidget(equalsButton, 4, 0, 1, 4);
 
     QObject::connect(equalsButton, &QPushButton::clicked, [display, &firstOperand, &pendingOperator, &startNewNumber]() {
@@ -117,11 +146,19 @@ int main(int argc, char **argv) {
         startNewNumber = true;
     });
 
+    for (int column = 0; column < 4; ++column) {
+        keypadLayout->setColumnStretch(column, 1);
+    }
+
+    for (int row = 0; row < 5; ++row) {
+        keypadLayout->setRowStretch(row, 1);
+    }
+
     auto *layout = new QVBoxLayout(&window);
     layout->addWidget(display);
-    layout->addLayout(keypadLayout);
+    layout->addLayout(keypadLayout, 1);
 
-    window.resize(250, 350);
+    window.resize(350, 500);
     window.show();
 
     return app.exec();
