@@ -17,7 +17,9 @@ int main(int argc, char **argv) {
     display->setReadOnly(true);
     display->setAlignment(Qt::AlignRight);
 
-    auto *oneButton = new QPushButton("1");
+    double firstOperand = 0.0;
+    QString pendingOperator;
+    bool startNewNumber = false;
 
     auto *keypadLayout = new QGridLayout();
 
@@ -36,8 +38,14 @@ int main(int argc, char **argv) {
 
         keypadLayout->addWidget(button, row, col);
 
-        QObject::connect(button, &QPushButton::clicked, [display, buttonText]() {
+        QObject::connect(button, &QPushButton::clicked, [display, buttonText, &startNewNumber]() {
+            if (startNewNumber) {
+                display->setText("0");
+                startNewNumber = false;
+            }
+
             const QString currentText = display->text();
+
             if (buttonText == "." && currentText.contains('.')) {
                 return;
             }
@@ -50,15 +58,70 @@ int main(int argc, char **argv) {
         });
     }
 
+    const QStringList operatorLabels = { "/", "*", "-", "+" };
+
+    for (int row = 0; row < operatorLabels.size(); ++row) {
+        const QString operatorText = operatorLabels[row];
+        auto *operatorButton = new QPushButton(operatorText);
+
+        keypadLayout->addWidget(operatorButton, row, 3);
+
+        QObject::connect(operatorButton, &QPushButton::clicked, [display, operatorText, &firstOperand, &pendingOperator, &startNewNumber]() {
+            firstOperand = display->text().toDouble();
+            pendingOperator = operatorText;
+            startNewNumber = true;
+        });
+    }
+
+    auto *clearButton = new QPushButton("C");
+
+    keypadLayout->addWidget(clearButton, 3, 2);
+
+    QObject::connect(clearButton, &QPushButton::clicked, [display, &firstOperand, &pendingOperator, &startNewNumber]() {
+        display->setText("0");
+        firstOperand = 0.0;
+        pendingOperator.clear();
+        startNewNumber = false;
+    });
+
+    auto *equalsButton = new QPushButton("=");
+    keypadLayout->addWidget(equalsButton, 4, 0, 1, 4);
+
+    QObject::connect(equalsButton, &QPushButton::clicked, [display, &firstOperand, &pendingOperator, &startNewNumber]() {
+        if (pendingOperator.isEmpty() || startNewNumber) {
+            return;
+        }
+
+        const double secondOperand = display->text().toDouble();
+        double result = 0.0;
+
+        if (pendingOperator == "+") {
+            result = firstOperand + secondOperand;
+        } else if (pendingOperator == "-") {
+            result = firstOperand - secondOperand;
+        } else if (pendingOperator == "*") {
+            result = firstOperand * secondOperand;
+        } else if (pendingOperator == "/") {
+            if (secondOperand != 0.0) {
+                result = firstOperand / secondOperand;
+            } else {
+                display->setText("Error");
+                return;
+            }
+        }
+        
+        display->setText(QString::number(result, 'g', 15));
+
+        firstOperand = result;
+        pendingOperator.clear();
+        startNewNumber = true;
+    });
+
     auto *layout = new QVBoxLayout(&window);
     layout->addWidget(display);
     layout->addLayout(keypadLayout);
 
-    QObject::connect(oneButton, &QPushButton::clicked, [display]() {
-        display->setText("1");
-    });
-
-    window.resize(250, 150);
+    window.resize(250, 350);
     window.show();
 
     return app.exec();
